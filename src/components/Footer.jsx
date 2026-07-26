@@ -1,8 +1,8 @@
 import React from 'react';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart, Lock } from 'lucide-react';
 import { WEDDING_CONFIG } from '../config/weddingData';
 
-export default function Footer() {
+export default function Footer({ onOpenAdmin }) {
   return (
     <footer className="py-16 px-4 bg-forest-darker text-white text-center relative overflow-hidden">
       <div className="max-w-4xl mx-auto relative z-10">
@@ -25,8 +25,16 @@ export default function Footer() {
           {WEDDING_CONFIG.dateDisplayText}
         </p>
 
-        <div className="pt-8 border-t border-white/10 text-xs text-white/50 tracking-wider">
+        <div className="pt-8 border-t border-white/10 text-xs text-white/50 tracking-wider flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>Hecho con amor para la Boda de Erlinda & Daniel © {new Date().getFullYear()}</p>
+          
+          <button
+            onClick={onOpenAdmin}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/70 hover:bg-gold-accent hover:text-forest-darker transition-all text-[11px] uppercase tracking-widest font-semibold"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            Acceso Novios (Admin)
+          </button>
         </div>
 
       </div>

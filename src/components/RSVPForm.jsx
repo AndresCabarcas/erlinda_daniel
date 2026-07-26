@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Send, CheckCircle2, Heart, MessageSquare, UserCheck, AlertCircle } from 'lucide-react';
+import { Send, CheckCircle2, Heart, Music, UserCheck, Download } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { saveRSVP } from '../config/firebase';
 import { WEDDING_CONFIG } from '../config/weddingData';
+import DigitalPassCard from './DigitalPassCard';
 
 export default function RSVPForm() {
   const [formData, setFormData] = useState({
@@ -10,11 +11,13 @@ export default function RSVPForm() {
     attendance: 'confirmado',
     guestsCount: 1,
     dietaryNotes: '',
+    songRequest: '',
     messageToCouple: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showDigitalPass, setShowDigitalPass] = useState(false);
   const [selectedWhatsApp, setSelectedWhatsApp] = useState(WEDDING_CONFIG.whatsappContacts[0].phone);
 
   useEffect(() => {
@@ -44,9 +47,9 @@ export default function RSVPForm() {
     setIsSubmitting(true);
 
     // 1. Guardar en Firebase (Firestore)
-    const result = await saveRSVP(formData);
+    await saveRSVP(formData);
 
-    // 2. Disparar efectos de Confeti de celebración
+    // 2. Disparar efecto de Confeti
     confetti({
       particleCount: 90,
       spread: 70,
@@ -56,14 +59,18 @@ export default function RSVPForm() {
 
     setIsSubmitting(false);
     setIsSuccess(true);
+    if (formData.attendance === 'confirmado') {
+      setShowDigitalPass(true);
+    }
 
-    // 3. Generar mensaje para WhatsApp y abrir WhatsApp
+    // 3. Generar mensaje para WhatsApp
     const isAttending = formData.attendance === 'confirmado';
     let text = `¡Hola Erlinda y Daniel! 💍\n\nSoy *${formData.guestName}*.\n`;
     
     if (isAttending) {
       text += `¡Confirmo mi asistencia a su boda! 🎉\n• Personas/Pases: *${formData.guestsCount}*\n`;
       if (formData.dietaryNotes) text += `• Restricciones alimentarias: ${formData.dietaryNotes}\n`;
+      if (formData.songRequest) text += `• Canción sugerida para la pista: "${formData.songRequest}" 🎵\n`;
     } else {
       text += `Lamentablemente no podré acompañarlos físicamente, pero les deseo infinitas bendiciones en su matrimonio. ❤️\n`;
     }
@@ -75,7 +82,7 @@ export default function RSVPForm() {
     const encodedMsg = encodeURIComponent(text);
     const whatsappUrl = `https://wa.me/${selectedWhatsApp}?text=${encodedMsg}`;
 
-    // Abrir WhatsApp en nueva pestaña
+    // Abrir WhatsApp
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -97,7 +104,7 @@ export default function RSVPForm() {
         </h2>
 
         <p className="text-text-muted text-base font-light mb-10 max-w-xl mx-auto">
-          Por favor ayúdanos a organizar este día especial confirmando tu asistencia. Tu registro se guardará en nuestro sistema y podrás enviarnos un mensaje por WhatsApp.
+          Por favor ayúdanos a organizar este día especial confirmando tu asistencia. Tu registro se guardará en nuestro sistema y podrás generar tu pase digital.
         </p>
 
         {isSuccess ? (
@@ -111,15 +118,27 @@ export default function RSVPForm() {
             </h3>
 
             <p className="text-text-muted text-base mb-6">
-              Tu respuesta ha sido registrada exitosamente en nuestro sistema de la boda. También se ha abierto WhatsApp para notificarnos directamente.
+              Tu respuesta ha sido registrada exitosamente. También se ha abierto WhatsApp para notificarnos directamente.
             </p>
 
-            <button
-              onClick={() => setIsSuccess(false)}
-              className="btn-outline px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider"
-            >
-              Confirmar otro invitado
-            </button>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              {formData.attendance === 'confirmado' && (
+                <button
+                  onClick={() => setShowDigitalPass(true)}
+                  className="btn-primary btn-gold py-3 px-6 text-xs uppercase font-bold tracking-wider"
+                >
+                  <Download className="w-4 h-4" />
+                  Ver / Descargar mi Pase Digital
+                </button>
+              )}
+
+              <button
+                onClick={() => setIsSuccess(false)}
+                className="btn-outline py-3 px-6 text-xs uppercase font-bold tracking-wider"
+              >
+                Confirmar otro invitado
+              </button>
+            </div>
           </div>
         ) : (
           <form
@@ -138,7 +157,7 @@ export default function RSVPForm() {
                 onChange={handleChange}
                 required
                 placeholder="Ej. Juan Pérez y Familia"
-                className="w-full px-4 py-3.5 rounded-xl bg-cream-bg border border-sage-primary/40 focus:border-gold-accent focus:ring-2 focus:ring-gold-accent/20 outline-none text-forest-deep font-medium transition-all"
+                className="w-full px-4 py-3.5 rounded-xl bg-cream-bg border border-sage-primary/40 focus:border-gold-accent outline-none text-forest-deep font-medium"
               />
             </div>
 
@@ -226,7 +245,25 @@ export default function RSVPForm() {
               </div>
             )}
 
-            {/* Campo 4: Restricciones alimentarias */}
+            {/* Campo 4: Canción sugerida (Mejora 2 solicitada) */}
+            {formData.attendance === 'confirmado' && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-forest-deep mb-2 flex items-center gap-1.5">
+                  <Music className="w-4 h-4 text-gold-accent" />
+                  ¿Qué canción no puede faltar en la fiesta? 🎵
+                </label>
+                <input
+                  type="text"
+                  name="songRequest"
+                  value={formData.songRequest}
+                  onChange={handleChange}
+                  placeholder="Ej. Artista - Nombre de la canción"
+                  className="w-full px-4 py-3.5 rounded-xl bg-cream-bg border border-sage-primary/40 focus:border-gold-accent outline-none text-forest-deep font-medium"
+                />
+              </div>
+            )}
+
+            {/* Campo 5: Restricciones alimentarias */}
             {formData.attendance === 'confirmado' && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-forest-deep mb-2">
@@ -243,7 +280,7 @@ export default function RSVPForm() {
               </div>
             )}
 
-            {/* Campo 5: Mensaje para los novios */}
+            {/* Campo 6: Mensaje para los novios */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-widest text-forest-deep mb-2">
                 Un mensaje para Erlinda & Daniel (Opcional)
@@ -272,11 +309,20 @@ export default function RSVPForm() {
               ) : (
                 <span className="flex items-center gap-2">
                   <Send className="w-5 h-5" />
-                  Confirmar Asistencia (Firebase + WhatsApp)
+                  Confirmar Asistencia & Obtener Pase
                 </span>
               )}
             </button>
           </form>
+        )}
+
+        {/* Modal de Pase Digital Descargable */}
+        {showDigitalPass && (
+          <DigitalPassCard
+            guestName={formData.guestName}
+            guestsCount={formData.guestsCount}
+            onClose={() => setShowDigitalPass(false)}
+          />
         )}
 
       </div>

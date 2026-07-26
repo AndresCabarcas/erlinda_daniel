@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import EnvelopeModal from './components/EnvelopeModal';
 import Hero from './components/Hero';
 import Blessing from './components/Blessing';
 import Countdown from './components/Countdown';
@@ -8,12 +9,24 @@ import Gifts from './components/Gifts';
 import RSVPForm from './components/RSVPForm';
 import MusicPlayer from './components/MusicPlayer';
 import Footer from './components/Footer';
+import AdminDashboard from './components/AdminDashboard';
 
 export default function App() {
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [musicTrigger, setMusicTrigger] = useState(0);
+
+  const handleEnvelopeOpen = () => {
+    // Al abrir el sobre virtual, incrementar trigger para reproducir música inmediatamente
+    setMusicTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="min-h-screen bg-cream-bg font-sans selection:bg-sage-primary selection:text-white">
+      {/* Sobre Virtual de Bienvenida (Apertura interactiva) */}
+      <EnvelopeModal onOpen={handleEnvelopeOpen} />
+
       {/* Control ambiental de música romántica */}
-      <MusicPlayer />
+      <MusicPlayer autoPlayTrigger={musicTrigger} />
 
       {/* Hero Principal con Banner Fotográfico y Personalización URL */}
       <Hero />
@@ -21,23 +34,28 @@ export default function App() {
       {/* Cita Bíblica / Bendición de Fe */}
       <Blessing />
 
-      {/* Reloj o Estado de Expectativa TBD */}
+      {/* Reloj de Cuenta Regresiva */}
       <Countdown />
 
-      {/* Galería Fotográfica de la Sesión de Fotos con Visor Lightbox */}
+      {/* Galería Fotográfica con Visor Lightbox */}
       <Gallery />
 
       {/* Detalles: Cuándo, Dónde & Código de Vestimenta */}
       <Details />
 
-      {/* Lluvia de Sobres / Cuentas Bancarias Nequi y Daviplata con Copiado */}
+      {/* Lluvia de Sobres en Físico */}
       <Gifts />
 
-      {/* Confirmación RSVP (Firebase Firestore + WhatsApp) */}
+      {/* Confirmación RSVP (Canción pedida + Pase Digital Descargable) */}
       <RSVPForm />
 
       {/* Pie de Página */}
-      <Footer />
+      <Footer onOpenAdmin={() => setShowAdmin(true)} />
+
+      {/* Panel Privado de Administración (Novios) */}
+      {showAdmin && (
+        <AdminDashboard onClose={() => setShowAdmin(false)} />
+      )}
     </div>
   );
 }
