@@ -1,0 +1,210 @@
+/* ============================================================
+   SISTEMA DE DISEÑO NUPCIAL - ERLINDA & DANIEL
+   ============================================================ */
+:root {
+  /* Paleta Eucalipto & Dorado */
+  --sage-primary: #879B89;
+  --sage-dark: #6B7F6D;
+  --forest-deep: #2C3E30;
+  --forest-darker: #1C2B20;
+  
+  --gold-accent: #C5A880;
+  --gold-light: #E2D1B3;
+  --gold-glow: rgba(197, 168, 128, 0.3);
+
+  --cream-bg: #F8F7F4;
+  --cream-card: #EFECE6;
+  --surface-white: #FFFFFF;
+  --surface-glass: rgba(255, 255, 255, 0.82);
+
+  --text-primary: #2C3E30;
+  --text-muted: #5C665D;
+  --text-light: #7E8C7F;
+  --text-white: #FFFFFF;
+
+  /* Sombra sutil y elegante */
+  --shadow-soft: 0 12px 35px -10px rgba(44, 62, 48, 0.12);
+  --shadow-elevated: 0 20px 45px -15px rgba(44, 62, 48, 0.22);
+  --shadow-gold: 0 10px 30px -8px rgba(197, 168, 128, 0.35);
+
+  /* Tipografías */
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-script: 'Alex Brush', cursive;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--cream-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Selección de texto elegante */
+::selection {
+  background-color: var(--sage-primary);
+  color: var(--surface-white);
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sage-primary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sage-dark);
+}
+
+/* Headers y Tipografía */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+/* Efecto Glassmorphism */
+.glass-card {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow-soft);
+  border-radius: 20px;
+}
+
+.glass-dark {
+  background: rgba(28, 43, 32, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(197, 168, 128, 0.25);
+  box-shadow: var(--shadow-elevated);
+  color: var(--text-white);
+}
+
+/* Botones Premium */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, var(--sage-primary) 0%, var(--sage-dark) 100%);
+  color: var(--surface-white);
+  padding: 0.9rem 2.2rem;
+  border-radius: 50px;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px -5px rgba(135, 155, 137, 0.45);
+  background: linear-gradient(135deg, var(--sage-dark) 0%, var(--forest-deep) 100%);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-accent) 0%, #B29165 100%);
+  color: var(--surface-white);
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-gold:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px -5px rgba(197, 168, 128, 0.55);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--sage-primary);
+  color: var(--forest-deep);
+}
+
+.btn-outline:hover {
+  background: var(--sage-primary);
+  color: var(--surface-white);
+}
+
+/* Animaciones */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 20s linear infinite;
+}
+
+/* Divisor floral de Medallón */
+.medallion-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin: 2rem auto;
+  max-width: 320px;
+}
+
+.medallion-line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--gold-accent));
+}
+
+.medallion-line.reverse {
+  background: linear-gradient(90deg, var(--gold-accent), transparent);
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  html {
+    font-size: 14.5px;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 1rem 1.8rem;
+  }
+}
