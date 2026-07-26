@@ -3,10 +3,11 @@ import { Music, VolumeX, Sparkles } from 'lucide-react';
 import { WEDDING_CONFIG } from '../config/weddingData';
 
 export default function MusicPlayer() {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const synthIntervalRef = useRef(null);
+  const startedRef = useRef(false);
 
   // Sintetizador Web Audio API de respaldo para melodía nupcial romántica
   const playRomanticSynthesizer = () => {
@@ -54,9 +55,11 @@ export default function MusicPlayer() {
       };
 
       playChord();
-      synthIntervalRef.current = setInterval(playChord, 3600);
+      if (!synthIntervalRef.current) {
+        synthIntervalRef.current = setInterval(playChord, 3600);
+      }
     } catch (e) {
-      console.log('Web Audio fallback initialized');
+      console.log('Web Audio fallback active');
     }
   };
 
@@ -70,41 +73,56 @@ export default function MusicPlayer() {
     }
   };
 
+  const startMusic = () => {
+    if (startedRef.current) return;
+    
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+      audioRef.current.play()
+        .then(() => {
+          startedRef.current = true;
+          setIsPlaying(true);
+        })
+        .catch(() => {
+          // Si el navegador requiere gesto de usuario, activamos al primer toque/scroll
+          playRomanticSynthesizer();
+          startedRef.current = true;
+          setIsPlaying(true);
+        });
+    } else {
+      playRomanticSynthesizer();
+      startedRef.current = true;
+      setIsPlaying(true);
+    }
+  };
+
   const toggleMusic = () => {
     if (isPlaying) {
       if (audioRef.current) audioRef.current.pause();
       stopRomanticSynthesizer();
       setIsPlaying(false);
+      startedRef.current = true;
     } else {
-      let playedAudio = false;
-      if (audioRef.current) {
-        audioRef.current.volume = 0.5;
-        audioRef.current.play()
-          .then(() => {
-            playedAudio = true;
-            setIsPlaying(true);
-          })
-          .catch(() => {
-            // Si el archivo mp3 no está presente aún, activa la melodía sintética romántica
-            playRomanticSynthesizer();
-            setIsPlaying(true);
-          });
-      } else {
-        playRomanticSynthesizer();
-        setIsPlaying(true);
-      }
+      startedRef.current = false;
+      startMusic();
     }
   };
 
   useEffect(() => {
-    // Escuchar intento de interacción inicial para reproducción suave
-    const handleFirstTouch = () => {
-      window.removeEventListener('click', handleFirstTouch);
-      window.removeEventListener('touchstart', handleFirstTouch);
+    // Intentar reproducción automática al cargar
+    startMusic();
+
+    // Eventos para iniciar al primer toque, scroll o click en caso de bloqueo de autoplay del navegador
+    const handleUserInteraction = () => {
+      startMusic();
+      ['pointerdown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(ev => {
+        window.removeEventListener(ev, handleUserInteraction);
+      });
     };
 
-    window.addEventListener('click', handleFirstTouch);
-    window.addEventListener('touchstart', handleFirstTouch);
+    ['pointerdown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(ev => {
+      window.addEventListener(ev, handleUserInteraction, { once: true, passive: true });
+    });
 
     return () => {
       stopRomanticSynthesizer();
@@ -118,6 +136,7 @@ export default function MusicPlayer() {
         src={WEDDING_CONFIG.audioTrackUrl}
         loop
         preload="auto"
+        autoPlay
       />
       <button
         onClick={toggleMusic}

@@ -1,8 +1,5 @@
 /* ============================================================
    CONFIGURACIÓN PRINCIPAL DE LA BODA - ERLINDA & DANIEL
-   ============================================================
-   Edita este archivo cuando la pareja confirme la fecha, hora
-   y lugar definitivos de la ceremonia y recepción.
    ============================================================ */
 
 export const WEDDING_CONFIG = {
@@ -13,62 +10,62 @@ export const WEDDING_CONFIG = {
     monogram: "E & D"
   },
   
-  // DATOS DE PRUEBA ACTIVOS PARA VER EL CONTEO REGRESIVO Y UBICACIÓN
+  // ESTADO DE FECHA Y HORA DEFINIDAS
   isDateDefined: true,
   
-  // Fecha objetivo de prueba (Noviembre 28, 2026 a las 5:00 PM)
-  targetDate: "2026-11-28T17:00:00",
+  // Fecha objetivo: 9 de Enero de 2027 a las 7:00 PM
+  targetDate: "2027-01-09T19:00:00",
   
-  dateDisplayText: "Sábado, 28 de Noviembre de 2026",
-  timeDisplayText: "5:00 PM",
+  dateDisplayText: "Sábado, 9 de Enero de 2027",
+  timeDisplayText: "7:00 PM",
 
-  // INFORMACIÓN DE UBICACIÓN Y LUGAR DE PRUEBA
+  // LUGAR DE CEREMONIA Y RECEPCIÓN
   venue: {
     isVenueDefined: true,
-    name: "Hacienda Villa Real",
-    address: "Cartagena de Indias, Colombia",
-    googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Cartagena+Colombia",
-    notes: "Ceremonia religiosa al atardecer seguida de la gran recepción en el salón principal."
+    ceremony: {
+      title: "Ceremonia Religiosa",
+      place: "Parroquia La Hermita",
+      time: "7:00 PM",
+      googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Parroquia+La+Hermita"
+    },
+    reception: {
+      title: "Recepción y Celebración",
+      place: "Villa Adriana",
+      time: "Desde las 8:00 PM",
+      googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Villa+Adriana"
+    },
+    notes: "Acompáñanos a la ceremonia religiosa en la Parroquia La Hermita a las 7:00 PM, y posteriormente a la celebración en Villa Adriana desde las 8:00 PM."
   },
 
-  // CONTACTOS DE WHATSAPP CON NÚMEROS DE PRUEBA ("000000000")
+  // CONTACTOS DE WHATSAPP PARA CONFIRMACIONES (000000000)
   whatsappContacts: [
     {
       name: "Erlinda & Daniel",
-      phone: "000000000", // Número de prueba
-      label: "Confirmar con la Novia / Novio"
+      phone: "000000000",
+      label: "Confirmar con los Novios"
     },
     {
       name: "Coordinación",
-      phone: "000000000", // Número de prueba secundario
+      phone: "000000000",
       label: "Confirmar por WhatsApp Secundario"
     }
   ],
 
   // CÓDIGO DE VESTIMENTA (DRESS CODE)
   dressCode: {
-    title: "Traje Formal / Elegante",
-    description: "Queremos que te sientas radiante en este día especial con nosotros.",
-    colorsRecommended: ["Verde Eucalipto / Oliva", "Tonos Beige / Crema", "Gris Sobrio"],
-    colorsReserved: "Blanco y Marfil reservados exclusivamente para la novia 👰‍♀️"
+    title: "Vestimenta Elegante / Etiqueta Formal",
+    description: "Les pedimos asistir en vestimenta elegante para celebrar juntos este día tan especial.",
+    colorsReserved: [
+      "Blanco y Marfil reservados exclusivamente para la novia 👰‍♀️",
+      "Color Champaña reservado exclusivamente para las damas de honor 🥂"
+    ]
   },
 
-  // LLUVIA DE SOBRES Y DERECHO DE REGALOS (Números de prueba)
+  // LLUVIA DE SOBRES EN FÍSICO (SIN CUENTAS NI BANCARIZACIÓN)
   gifts: {
     type: "Lluvia de Sobres",
-    description: "Tu presencia es nuestro mejor regalo. Si deseas hacernos un presente en efectivo o digital, ponemos a tu disposición:",
-    accounts: [
-      {
-        bank: "Nequi",
-        number: "000000000",
-        holder: "Erlinda & Daniel"
-      },
-      {
-        bank: "Daviplata",
-        number: "000000000",
-        holder: "Erlinda & Daniel"
-      }
-    ]
+    description: "Tu presencia en nuestra boda es nuestro mejor regalo. Si deseas hacernos un presente, dispondremos de un buzón especial el día del evento para sobres en físico.",
+    accounts: []
   },
 
   // VERSÍCULO O CITA BÍBLICA

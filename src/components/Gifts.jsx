@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Gift, Copy, Check, HeartHandshake } from 'lucide-react';
+import { Gift, HeartHandshake, Mail, Copy, Check } from 'lucide-react';
 import { WEDDING_CONFIG } from '../config/weddingData';
 
 export default function Gifts() {
@@ -10,6 +10,8 @@ export default function Gifts() {
     setCopiedAccount(bankName);
     setTimeout(() => setCopiedAccount(null), 2500);
   };
+
+  const accounts = WEDDING_CONFIG.gifts?.accounts || [];
 
   return (
     <section className="py-20 px-4 bg-cream-bg text-center">
@@ -28,64 +30,50 @@ export default function Gifts() {
           Lluvia de Sobres
         </h2>
 
-        <p className="text-text-muted text-base sm:text-lg max-w-2xl mx-auto font-light leading-relaxed mb-12">
-          {WEDDING_CONFIG.gifts.description}
-        </p>
+        {/* Tarjeta de Lluvia de Sobres en Físico */}
+        <div className="glass-card p-8 sm:p-12 border-gold-accent/40 shadow-elevated max-w-2xl mx-auto">
+          <div className="w-16 h-16 rounded-full bg-sage-primary/15 text-sage-primary flex items-center justify-center mx-auto mb-6 border border-sage-primary/30">
+            <Mail className="w-8 h-8 text-forest-deep" />
+          </div>
 
-        {/* Tarjetas de Cuentas Nequi / Daviplata */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-8">
-          {WEDDING_CONFIG.gifts.accounts.map((account, idx) => (
-            <div
-              key={idx}
-              className="glass-card p-6 border-gold-accent/30 shadow-soft flex flex-col items-center justify-between transform transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="w-12 h-12 rounded-full bg-forest-deep text-gold-accent flex items-center justify-center font-bold text-lg mb-4 shadow-md">
-                {account.bank[0]}
-              </div>
+          <h3 className="font-serif text-2xl sm:text-3xl text-forest-deep font-semibold mb-4">
+            Sobres en Físico
+          </h3>
 
-              <h4 className="font-serif text-2xl text-forest-deep font-semibold mb-1">
-                {account.bank}
-              </h4>
-              
-              <p className="text-xs text-sage-dark font-medium uppercase tracking-wider mb-4">
-                Titular: {account.holder}
-              </p>
+          <p className="text-text-muted text-base sm:text-lg font-light leading-relaxed mb-8">
+            {WEDDING_CONFIG.gifts?.description || 'Tu presencia en nuestra boda es nuestro mejor regalo.'}
+          </p>
 
-              <div className="w-full bg-cream-bg p-3 rounded-xl border border-sage-primary/30 flex items-center justify-between mb-4">
-                <span className="font-mono text-lg font-bold text-forest-deep tracking-wider">
-                  {account.number}
-                </span>
-                <button
-                  onClick={() => handleCopy(account.number, account.bank)}
-                  className={`p-2 rounded-lg transition-all ${
-                    copiedAccount === account.bank
-                      ? 'bg-sage-primary text-white'
-                      : 'bg-white text-forest-deep hover:bg-gold-accent hover:text-white shadow-sm'
-                  }`}
-                  aria-label={`Copiar número de ${account.bank}`}
-                  title="Copiar número"
+          {accounts.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-8">
+              {accounts.map((account, idx) => (
+                <div
+                  key={idx}
+                  className="glass-card p-6 border-gold-accent/30 shadow-soft flex flex-col items-center justify-between"
                 >
-                  {copiedAccount === account.bank ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-
-              {copiedAccount === account.bank && (
-                <span className="text-xs font-semibold text-sage-dark animate-fade-in">
-                  ✓ ¡Número copiado al portapapeles!
-                </span>
-              )}
+                  <h4 className="font-serif text-2xl text-forest-deep font-semibold mb-1">
+                    {account.bank}
+                  </h4>
+                  <div className="w-full bg-cream-bg p-3 rounded-xl border border-sage-primary/30 flex items-center justify-between my-2">
+                    <span className="font-mono text-lg font-bold text-forest-deep">
+                      {account.number}
+                    </span>
+                    <button
+                      onClick={() => handleCopy(account.number, account.bank)}
+                      className="p-2 rounded-lg bg-white text-forest-deep hover:bg-gold-accent hover:text-white"
+                    >
+                      {copiedAccount === account.bank ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Mensaje de Sobre Presencial */}
-        <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-sage-primary/10 border border-sage-primary/30 text-forest-deep text-sm font-medium">
-          <HeartHandshake className="w-5 h-5 text-gold-accent" />
-          <span>También dispondremos de un buzón de sobres el día del evento</span>
+          <div className="inline-flex items-center justify-center gap-3 px-6 py-3.5 rounded-full bg-forest-deep text-white text-sm font-medium shadow-md">
+            <HeartHandshake className="w-5 h-5 text-gold-accent" />
+            <span>Dispondremos de una mesa y buzón de sobres el día de la recepción</span>
+          </div>
         </div>
 
       </div>
