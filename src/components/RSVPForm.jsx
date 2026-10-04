@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, CheckCircle2, Heart, Music, UserCheck, Download } from 'lucide-react';
+import { Send, CheckCircle2, Heart, Music, UserCheck, Download, MessageCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { saveRSVP } from '../config/firebase';
 import { WEDDING_CONFIG } from '../config/weddingData';
@@ -19,6 +19,7 @@ export default function RSVPForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showDigitalPass, setShowDigitalPass] = useState(false);
   const [selectedWhatsApp, setSelectedWhatsApp] = useState(WEDDING_CONFIG.whatsappContacts[0].phone);
+  const [whatsappDirectLink, setWhatsappDirectLink] = useState('');
 
   useEffect(() => {
     // Si la URL contiene el nombre del invitado, autocompletarlo en el formulario
@@ -81,6 +82,7 @@ export default function RSVPForm() {
 
     const encodedMsg = encodeURIComponent(text);
     const whatsappUrl = `https://wa.me/${selectedWhatsApp}?text=${encodedMsg}`;
+    setWhatsappDirectLink(whatsappUrl);
 
     // Abrir WhatsApp
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
@@ -118,7 +120,7 @@ export default function RSVPForm() {
             </h3>
 
             <p className="text-text-muted text-base mb-6">
-              Tu respuesta ha sido registrada exitosamente. También se ha abierto WhatsApp para notificarnos directamente.
+              Tu respuesta ha sido registrada exitosamente. También se ha preparado tu mensaje para notificarnos por WhatsApp.
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -130,6 +132,18 @@ export default function RSVPForm() {
                   <Download className="w-4 h-4" />
                   Ver / Descargar mi Pase Digital
                 </button>
+              )}
+
+              {whatsappDirectLink && (
+                <a
+                  href={whatsappDirectLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary py-3 px-6 text-xs uppercase font-bold tracking-wider bg-emerald-700 hover:bg-emerald-800 text-white shadow-soft inline-flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4 text-white" />
+                  Enviar por WhatsApp
+                </a>
               )}
 
               <button

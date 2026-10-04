@@ -15,6 +15,13 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [musicTrigger, setMusicTrigger] = useState(0);
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('admin')) {
+      setShowAdmin(true);
+    }
+  }, []);
+
   const handleEnvelopeOpen = () => {
     // Al abrir el sobre virtual, incrementar trigger para reproducir música inmediatamente
     setMusicTrigger(prev => prev + 1);

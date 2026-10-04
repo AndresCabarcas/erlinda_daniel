@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Calendar, Bell, Sparkles } from 'lucide-react';
 import { WEDDING_CONFIG } from '../config/weddingData';
+import AddToCalendar from './AddToCalendar';
 
 export default function Countdown() {
   const [timeLeft, setTimeLeft] = useState({
@@ -56,7 +57,8 @@ export default function Countdown() {
               <p className="text-text-muted">Gracias por acompañarnos a celebrar este momento inolvidable.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
               {[
                 { label: 'Días', value: timeLeft.days },
                 { label: 'Horas', value: String(timeLeft.hours).padStart(2, '0') },
@@ -76,6 +78,10 @@ export default function Countdown() {
                 </div>
               ))}
             </div>
+
+            {/* Componente para Agendar en Google Calendar o Apple/iCal */}
+            <AddToCalendar />
+          </>
           )
         ) : (
           /* Estado elegante de Expectativa cuando la fecha está TBD */
