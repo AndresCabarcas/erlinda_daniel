@@ -3,7 +3,7 @@ import { fetchRSVPList } from '../config/firebase';
 import { 
   X, Download, Users, CheckCircle, XCircle, Music, FileSpreadsheet, 
   Lock, Search, Copy, Check, MessageCircle, Share2, ExternalLink, UserCheck,
-  Utensils, Heart, Eye, MessageSquare, Calendar
+  Utensils, Heart, Eye, MessageSquare, Calendar, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import guestsDirectory from '../config/guestsList.json';
 
@@ -13,6 +13,7 @@ export default function AdminDashboard({ onClose }) {
   const [activeTab, setActiveTab] = useState('directory'); // 'directory' | 'rsvps'
   const [rsvps, setRsvps] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [firestoreError, setFirestoreError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState(null);
   const [selectedRSVP, setSelectedRSVP] = useState(null);
@@ -32,13 +33,28 @@ export default function AdminDashboard({ onClose }) {
   const fetchRSVPs = async () => {
     setIsLoading(true);
     try {
-      const loadedList = await fetchRSVPList();
-      setRsvps(loadedList);
+      const result = await fetchRSVPList();
+      const listData = Array.isArray(result) ? result : (result?.list || []);
+      setRsvps(listData);
+      setFirestoreError(result?.error || null);
     } catch (e) {
       console.warn("Error cargando RSVPs:", e);
       setRsvps([]);
+      setFirestoreError(e.code || e.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const formatDisplayDate = (dateVal) => {
+    if (!dateVal) return '';
+    try {
+      if (typeof dateVal === 'object' && dateVal.seconds) {
+        return new Date(dateVal.seconds * 1000).toLocaleString();
+      }
+      return new Date(dateVal).toLocaleString();
+    } catch {
+      return '';
     }
   };
 
@@ -54,7 +70,7 @@ export default function AdminDashboard({ onClose }) {
       `"${item.dietaryNotes || ''}"`,
       `"${item.songRequest || ''}"`,
       `"${item.messageToCouple || ''}"`,
-      `"${item.createdAt ? new Date(item.createdAt.seconds ? item.createdAt.seconds * 1000 : item.createdAt).toLocaleDateString() : ''}"`
+      `"${formatDisplayDate(item.createdAt)}"`
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -259,13 +275,25 @@ export default function AdminDashboard({ onClose }) {
             </div>
 
             {activeTab === 'rsvps' && (
-              <button
-                onClick={exportToCSV}
-                className="btn-primary btn-gold py-2.5 px-5 text-xs font-bold uppercase tracking-wider shrink-0 flex items-center justify-center gap-2"
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                Exportar Respuestas a Excel
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={fetchRSVPs}
+                  disabled={isLoading}
+                  className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-forest-deep hover:text-white border border-sage-primary/40 text-xs font-bold uppercase tracking-wider text-forest-deep transition-all flex items-center gap-1.5 shadow-sm"
+                  title="Recargar respuestas de la nube"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-gold-accent' : ''}`} />
+                  <span>Actualizar</span>
+                </button>
+
+                <button
+                  onClick={exportToCSV}
+                  className="btn-primary btn-gold py-2.5 px-4 text-xs font-bold uppercase tracking-wider shrink-0 flex items-center justify-center gap-2"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Exportar a Excel
+                </button>
+              </div>
             )}
           </div>
 
@@ -333,7 +361,42 @@ export default function AdminDashboard({ onClose }) {
             </div>
           ) : (
             /* TAB 2: Respuestas RSVP en Tiempo Real */
-            <div className="overflow-y-auto overflow-x-auto flex-1 rounded-2xl border border-sage-primary/20 bg-white">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {firestoreError && (
+                <div className="mb-3 p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-left shrink-0">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-xs text-amber-950 space-y-1.5 flex-1">
+                      <p className="font-bold text-sm text-amber-900">
+                        Aviso de Seguridad Firebase ({firestoreError})
+                      </p>
+                      <p className="leading-snug">
+                        Para sincronizar las confirmaciones en la nube entre celulares y computadores, debes permitir el acceso en las <strong>Reglas de Firestore</strong> de Firebase Console.
+                      </p>
+                      <div className="pt-1 flex flex-wrap items-center gap-2.5">
+                        <a
+                          href="https://console.firebase.google.com/project/erlinda-daniel/firestore/rules"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold transition-all shadow-sm text-xs"
+                        >
+                          <span>Abrir Reglas en Firebase Console</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          onClick={fetchRSVPs}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-400 hover:bg-amber-100 text-amber-900 font-bold transition-all text-xs"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          <span>Refrescar Lista</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="overflow-y-auto overflow-x-auto flex-1 rounded-2xl border border-sage-primary/20 bg-white">
               {isLoading ? (
                 <div className="p-12 text-center text-xs text-sage-dark">Cargando datos de confirmación...</div>
               ) : filteredRsvps.length === 0 ? (
@@ -416,7 +479,8 @@ export default function AdminDashboard({ onClose }) {
                 </table>
               )}
             </div>
-          )}
+          </div>
+        )}
 
         </div>
       )}

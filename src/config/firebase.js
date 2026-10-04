@@ -78,9 +78,8 @@ export async function saveRSVP(rsvpData) {
     console.log("✓ Confirmación guardada en Firestore con ID:", docRef.id);
     return { success: true, id: docRef.id, isRemote: true };
   } catch (err) {
-    console.warn("Aviso sincronización Firestore:", err.message);
-    // Si Firestore aún no tiene creada la base de datos o las reglas, el registro sigue seguro en local y WhatsApp
-    return { success: true, id: localRecord.id, isLocalFallback: true };
+    console.warn("Aviso sincronización Firestore:", err.code || err.message);
+    return { success: true, id: localRecord.id, isLocalFallback: true, error: err.code || err.message };
   }
 }
 
@@ -89,6 +88,7 @@ export async function saveRSVP(rsvpData) {
  */
 export async function fetchRSVPList() {
   let list = [];
+  let error = null;
 
   try {
     const q = query(collection(db, "rsvps"), orderBy("createdAt", "desc"));
@@ -99,11 +99,10 @@ export async function fetchRSVPList() {
     querySnapshot.forEach((doc) => {
       list.push({ id: doc.id, ...doc.data() });
     });
-    if (list.length > 0) {
-      return list;
-    }
+    return { list, error: null };
   } catch (e) {
-    console.warn("Leyendo respaldos locales de confirmación:", e.message);
+    error = e.code || e.message;
+    console.warn("Leyendo respaldos locales de confirmación:", error);
   }
 
   try {
@@ -112,5 +111,5 @@ export async function fetchRSVPList() {
     list = [];
   }
 
-  return list;
+  return { list, error };
 }
