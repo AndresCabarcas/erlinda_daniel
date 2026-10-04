@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { fetchRSVPList } from '../config/firebase';
 import { 
   X, Download, Users, CheckCircle, XCircle, Music, FileSpreadsheet, 
-  Lock, Search, Copy, Check, MessageCircle, Share2, ExternalLink, UserCheck
+  Lock, Search, Copy, Check, MessageCircle, Share2, ExternalLink, UserCheck,
+  Utensils, Heart, Eye, MessageSquare, Calendar
 } from 'lucide-react';
 import guestsDirectory from '../config/guestsList.json';
 
@@ -15,6 +15,7 @@ export default function AdminDashboard({ onClose }) {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+  const [selectedRSVP, setSelectedRSVP] = useState(null);
 
   const ADMIN_PIN = "2027"; // Clave de acceso para la pareja
 
@@ -30,20 +31,15 @@ export default function AdminDashboard({ onClose }) {
 
   const fetchRSVPs = async () => {
     setIsLoading(true);
-    let loadedList = [];
     try {
-      const q = query(collection(db, "rsvps"), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        loadedList.push({ id: doc.id, ...doc.data() });
-      });
+      const loadedList = await fetchRSVPList();
+      setRsvps(loadedList);
     } catch (e) {
-      console.warn("Firestore offline/fallback mode:", e);
-      // Cargar respaldos locales
-      loadedList = JSON.parse(localStorage.getItem("wedding_rsvps") || "[]");
+      console.warn("Error cargando RSVPs:", e);
+      setRsvps([]);
+    } finally {
+      setIsLoading(false);
     }
-    setRsvps(loadedList);
-    setIsLoading(false);
   };
 
   // Exportar lista a CSV / Excel
@@ -349,26 +345,71 @@ export default function AdminDashboard({ onClose }) {
                       <th className="p-3">Invitado</th>
                       <th className="p-3">Estado</th>
                       <th className="p-3 text-center">Pases</th>
-                      <th className="p-3">Canción Pedida 🎵</th>
-                      <th className="p-3">Alergias / Dieta</th>
-                      <th className="p-3">Mensaje</th>
+                      <th className="p-3">Canción para la Fiesta 🎵</th>
+                      <th className="p-3">Alergias / Restricciones 🥗</th>
+                      <th className="p-3">Mensaje con Cariño 💌</th>
+                      <th className="p-3 text-center">Ficha</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-sage-primary/10">
                     {filteredRsvps.map((r, idx) => (
-                      <tr key={idx} className="hover:bg-cream-bg/50 transition-colors">
+                      <tr key={idx} className="hover:bg-cream-bg/60 transition-colors">
                         <td className="p-3 font-bold text-forest-deep">{r.guestName}</td>
                         <td className="p-3">
                           <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            r.attendance === 'confirmado' ? 'bg-sage-primary/20 text-forest-deep' : 'bg-red-100 text-red-800'
+                            r.attendance === 'confirmado' ? 'bg-sage-primary/20 text-forest-deep border border-sage-primary/40' : 'bg-red-100 text-red-800 border border-red-200'
                           }`}>
                             {r.attendance === 'confirmado' ? '✓ Confirmado' : '✗ No Asiste'}
                           </span>
                         </td>
-                        <td className="p-3 text-center font-bold">{r.guestsCount || 1}</td>
-                        <td className="p-3 text-sage-dark font-medium">{r.songRequest || '—'}</td>
-                        <td className="p-3 text-text-muted">{r.dietaryNotes || '—'}</td>
-                        <td className="p-3 italic text-text-muted">{r.messageToCouple || '—'}</td>
+                        <td className="p-3 text-center font-bold text-forest-deep">{r.guestsCount || 1}</td>
+                        
+                        {/* Canción Pedida */}
+                        <td className="p-3">
+                          {r.songRequest ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gold-accent/15 text-forest-deep font-medium border border-gold-accent/30 max-w-[200px] truncate" title={r.songRequest}>
+                              <Music className="w-3.5 h-3.5 text-gold-accent shrink-0" />
+                              <span className="truncate">{r.songRequest}</span>
+                            </span>
+                          ) : (
+                            <span className="text-text-muted/60">—</span>
+                          )}
+                        </td>
+
+                        {/* Alergias o Restricciones Alimentarias */}
+                        <td className="p-3">
+                          {r.dietaryNotes ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 font-semibold border border-amber-300 max-w-[200px] truncate" title={r.dietaryNotes}>
+                              <Utensils className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span className="truncate">{r.dietaryNotes}</span>
+                            </span>
+                          ) : (
+                            <span className="text-text-muted/60">Ninguna</span>
+                          )}
+                        </td>
+
+                        {/* Mensaje para los novios */}
+                        <td className="p-3">
+                          {r.messageToCouple ? (
+                            <span className="inline-flex items-center gap-1.5 text-forest-deep italic max-w-[220px] truncate" title={r.messageToCouple}>
+                              <Heart className="w-3.5 h-3.5 text-red-400 shrink-0 fill-red-400/20" />
+                              <span className="truncate">"{r.messageToCouple}"</span>
+                            </span>
+                          ) : (
+                            <span className="text-text-muted/60">—</span>
+                          )}
+                        </td>
+
+                        {/* Botón Ver Ficha Completa */}
+                        <td className="p-3 text-center">
+                          <button
+                            onClick={() => setSelectedRSVP(r)}
+                            className="p-1.5 rounded-lg bg-cream-bg hover:bg-forest-deep hover:text-white border border-sage-primary/30 transition-all text-forest-deep inline-flex items-center justify-center"
+                            title="Ver respuestas completas de este invitado"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -377,6 +418,93 @@ export default function AdminDashboard({ onClose }) {
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* Modal Emergente con Respuestas Completas del Invitado */}
+      {selectedRSVP && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="glass-card max-w-lg w-full p-6 sm:p-8 bg-cream-bg border-2 border-gold-accent rounded-3xl shadow-2xl relative text-left">
+            <button
+              onClick={() => setSelectedRSVP(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-sage-primary/10 hover:bg-forest-deep hover:text-white text-forest-deep transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <span className="text-xs uppercase tracking-widest text-gold-accent font-bold block mb-1">
+              Ficha de Respuestas RSVP
+            </span>
+            <h3 className="font-serif text-3xl text-forest-deep font-bold mb-4">
+              {selectedRSVP.guestName}
+            </h3>
+
+            <div className="space-y-4">
+              {/* Asistencia y Cupos */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-sage-primary/20">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold block">Estado de Asistencia</span>
+                  <span className={`text-sm font-bold ${selectedRSVP.attendance === 'confirmado' ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {selectedRSVP.attendance === 'confirmado' ? '✓ Asistirá con alegría' : '✗ No podrá asistir'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold block">Pases Asignados</span>
+                  <span className="text-lg font-bold text-forest-deep">{selectedRSVP.guestsCount || 1} {selectedRSVP.guestsCount === 1 ? 'Persona' : 'Personas'}</span>
+                </div>
+              </div>
+
+              {/* Canción Pedida */}
+              <div className="p-4 rounded-xl bg-white border border-gold-accent/40 shadow-sm">
+                <div className="flex items-center gap-2 mb-1 text-gold-accent font-bold text-xs uppercase tracking-wider">
+                  <Music className="w-4 h-4" />
+                  <span>Canción que no puede faltar en la fiesta:</span>
+                </div>
+                <p className="text-sm font-semibold text-forest-deep">
+                  {selectedRSVP.songRequest ? `"${selectedRSVP.songRequest}"` : <span className="text-text-muted font-normal italic">No especificó canción</span>}
+                </p>
+              </div>
+
+              {/* Alergias / Restricciones */}
+              <div className={`p-4 rounded-xl border shadow-sm ${selectedRSVP.dietaryNotes ? 'bg-amber-50/80 border-amber-300' : 'bg-white border-sage-primary/20'}`}>
+                <div className="flex items-center gap-2 mb-1 text-xs uppercase tracking-wider font-bold text-forest-deep">
+                  <Utensils className={`w-4 h-4 ${selectedRSVP.dietaryNotes ? 'text-amber-600' : 'text-sage-primary'}`} />
+                  <span>Alergias o Restricciones Alimentarias:</span>
+                </div>
+                <p className="text-sm font-medium text-forest-deep">
+                  {selectedRSVP.dietaryNotes ? selectedRSVP.dietaryNotes : <span className="text-text-muted font-normal italic">Sin restricciones reportadas</span>}
+                </p>
+              </div>
+
+              {/* Mensaje con Cariño */}
+              <div className="p-4 rounded-xl bg-white border border-sage-primary/30 shadow-sm">
+                <div className="flex items-center gap-2 mb-1 text-xs uppercase tracking-wider font-bold text-red-700">
+                  <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                  <span>Mensaje para Erlinda & Daniel:</span>
+                </div>
+                <p className="font-serif text-base italic text-forest-deep leading-relaxed">
+                  {selectedRSVP.messageToCouple ? `«${selectedRSVP.messageToCouple}»` : <span className="font-sans text-xs text-text-muted font-normal">Sin mensaje escrito</span>}
+                </p>
+              </div>
+
+              {/* Fecha de Registro */}
+              {selectedRSVP.createdAt && (
+                <div className="text-[11px] text-text-muted flex items-center justify-between pt-1">
+                  <span>Fecha de Confirmación:</span>
+                  <span className="font-medium text-forest-deep">
+                    {new Date(selectedRSVP.createdAt.seconds ? selectedRSVP.createdAt.seconds * 1000 : selectedRSVP.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setSelectedRSVP(null)}
+              className="btn-primary w-full mt-6 py-2.5 text-xs uppercase font-bold tracking-wider"
+            >
+              Cerrar Ficha
+            </button>
+          </div>
         </div>
       )}
 

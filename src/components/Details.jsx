@@ -18,7 +18,7 @@ export default function Details() {
         {/* Tarjetas de Lugares: Ceremonia + Recepción */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           
-          {/* Tarjeta 1: Ceremonia Religiosa - Parroquia La Hermita */}
+          {/* Tarjeta 1: Ceremonia Religiosa - Parroquia La Ermita */}
           <div className="glass-card p-8 sm:p-10 border-gold-accent/30 shadow-soft flex flex-col items-center justify-between text-center relative overflow-hidden transform transition-all duration-300 hover:-translate-y-1">
             <div className="p-4 rounded-full bg-sage-primary/10 text-sage-primary mb-4">
               <Church className="w-8 h-8" />

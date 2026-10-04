@@ -1,42 +1,116 @@
 import { initializeApp, getApps } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
-// Configuración de Firebase (remplaza con tus credenciales de proyecto Firebase cuando desees)
+// Configuración Oficial de Firebase del Proyecto de Boda Erlinda & Daniel
 const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyForErlindaAndDanielWedding",
-  authDomain: "erlinda-daniel-boda.firebaseapp.com",
-  projectId: "erlinda-daniel-boda",
-  storageBucket: "erlinda-daniel-boda.firebasestorage.app",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789"
+  apiKey: "AIzaSyA1S6qq7L5nBUZX7CpsMVPTHGEGkw8N2uo",
+  authDomain: "erlinda-daniel.firebaseapp.com",
+  projectId: "erlinda-daniel",
+  storageBucket: "erlinda-daniel.firebasestorage.app",
+  messagingSenderId: "191404876143",
+  appId: "1:191404876143:web:0f2a6768a14d768911c89a",
+  measurementId: "G-EMH7LYK4SG"
 };
 
-// Inicializar Firebase
+// Inicializar Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
+// Inicializar Analytics si está soportado en el navegador
+if (typeof window !== "undefined") {
+  isSupported().then(yes => {
+    if (yes) {
+      try {
+        getAnalytics(app);
+      } catch (e) {
+        // Analytics opcional
+      }
+    }
+  });
+}
+
+// Inicializar Firestore
 export const db = getFirestore(app);
+export const isFirebaseConfigured = true;
 
 /**
- * Guarda una confirmación de asistencia (RSVP) en Firestore
+ * Guarda una confirmación de asistencia (RSVP) en Firestore con respaldo local
  */
 export async function saveRSVP(rsvpData) {
+  const localRecord = {
+    id: 'rsvp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    guestName: rsvpData.guestName || "Invitado",
+    attendance: rsvpData.attendance || "confirmado",
+    guestsCount: Number(rsvpData.guestsCount) || 1,
+    dietaryNotes: rsvpData.dietaryNotes || "",
+    songRequest: rsvpData.songRequest || "",
+    messageToCouple: rsvpData.messageToCouple || "",
+    createdAt: new Date().toISOString()
+  };
+
+  // 1. Guardar siempre respaldo inmediato en localStorage del dispositivo
   try {
-    const docRef = await addDoc(collection(db, "rsvps"), {
-      guestName: rsvpData.guestName || "Invitado",
-      attendance: rsvpData.attendance || "confirmado",
-      guestsCount: Number(rsvpData.guestsCount) || 1,
-      dietaryNotes: rsvpData.dietaryNotes || "",
-      songRequest: rsvpData.songRequest || "",
-      messageToCouple: rsvpData.messageToCouple || "",
-      createdAt: serverTimestamp(),
-      userAgent: navigator.userAgent
-    });
-    return { success: true, id: docRef.id };
-  } catch (error) {
-    console.warn("Firestore save fallback mode:", error);
-    // Guardado local de respaldo si Firebase está en modo demostración u offline
     const localRSVPs = JSON.parse(localStorage.getItem("wedding_rsvps") || "[]");
-    localRSVPs.push({ ...rsvpData, createdAt: new Date().toISOString() });
+    localRSVPs.unshift(localRecord);
     localStorage.setItem("wedding_rsvps", JSON.stringify(localRSVPs));
-    return { success: true, isLocalFallback: true };
+  } catch (storageErr) {
+    console.warn("Aviso localStorage:", storageErr);
   }
+
+  // 2. Guardar en Firestore con timeout de seguridad de 4 segundos
+  try {
+    const savePromise = addDoc(collection(db, "rsvps"), {
+      guestName: localRecord.guestName,
+      attendance: localRecord.attendance,
+      guestsCount: localRecord.guestsCount,
+      dietaryNotes: localRecord.dietaryNotes,
+      songRequest: localRecord.songRequest,
+      messageToCouple: localRecord.messageToCouple,
+      createdAt: serverTimestamp(),
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : ""
+    });
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout Firestore (usando respaldo local)")), 4000)
+    );
+
+    const docRef = await Promise.race([savePromise, timeoutPromise]);
+    console.log("✓ Confirmación guardada en Firestore con ID:", docRef.id);
+    return { success: true, id: docRef.id, isRemote: true };
+  } catch (err) {
+    console.warn("Aviso sincronización Firestore:", err.message);
+    // Si Firestore aún no tiene creada la base de datos o las reglas, el registro sigue seguro en local y WhatsApp
+    return { success: true, id: localRecord.id, isLocalFallback: true };
+  }
+}
+
+/**
+ * Obtiene la lista de confirmaciones (desde Firestore o respaldo local)
+ */
+export async function fetchRSVPList() {
+  let list = [];
+
+  try {
+    const q = query(collection(db, "rsvps"), orderBy("createdAt", "desc"));
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout obteniendo Firestore")), 4000)
+    );
+    const querySnapshot = await Promise.race([getDocs(q), timeoutPromise]);
+    querySnapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() });
+    });
+    if (list.length > 0) {
+      return list;
+    }
+  } catch (e) {
+    console.warn("Leyendo respaldos locales de confirmación:", e.message);
+  }
+
+  try {
+    list = JSON.parse(localStorage.getItem("wedding_rsvps") || "[]");
+  } catch (e) {
+    list = [];
+  }
+
+  return list;
 }

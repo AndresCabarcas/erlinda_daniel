@@ -47,45 +47,63 @@ export default function RSVPForm() {
 
     setIsSubmitting(true);
 
-    // 1. Guardar en Firebase (Firestore)
-    await saveRSVP(formData);
+    try {
+      // 1. Guardar en sistema (Firestore o respaldo local instantáneo)
+      await saveRSVP(formData);
 
-    // 2. Disparar efecto de Confeti
-    confetti({
-      particleCount: 90,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#879B89', '#C5A880', '#2C3E30', '#FFFFFF']
-    });
+      // 2. Disparar efecto de Confeti
+      try {
+        confetti({
+          particleCount: 90,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#879B89', '#C5A880', '#2C3E30', '#FFFFFF']
+        });
+      } catch (confettiErr) {
+        // Confeti opcional
+      }
 
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    if (formData.attendance === 'confirmado') {
-      setShowDigitalPass(true);
+      setIsSuccess(true);
+      if (formData.attendance === 'confirmado') {
+        setShowDigitalPass(true);
+      }
+
+      // 3. Generar mensaje para WhatsApp
+      const isAttending = formData.attendance === 'confirmado';
+      let text = `¡Hola Erlinda y Daniel! 💍\n\nSoy *${formData.guestName}*.\n`;
+      
+      if (isAttending) {
+        text += `¡Confirmo mi asistencia a su boda! 🎉\n• Personas/Pases: *${formData.guestsCount}*\n`;
+        if (formData.dietaryNotes) text += `• Restricciones alimentarias: ${formData.dietaryNotes}\n`;
+        if (formData.songRequest) text += `• Canción sugerida para la pista: "${formData.songRequest}" 🎵\n`;
+      } else {
+        text += `Lamentablemente no podré acompañarlos físicamente, pero les deseo infinitas bendiciones en su matrimonio. ❤️\n`;
+      }
+
+      if (formData.messageToCouple) {
+        text += `\nMensaje con cariño: "${formData.messageToCouple}"`;
+      }
+
+      const encodedMsg = encodeURIComponent(text);
+      const whatsappUrl = `https://wa.me/${selectedWhatsApp}?text=${encodedMsg}`;
+      setWhatsappDirectLink(whatsappUrl);
+
+      // Abrir WhatsApp
+      try {
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      } catch (openErr) {
+        console.warn("Popup bloqueado:", openErr);
+      }
+    } catch (err) {
+      console.error("Error al procesar RSVP:", err);
+      // Fallback para no bloquear la experiencia del invitado
+      setIsSuccess(true);
+      if (formData.attendance === 'confirmado') {
+        setShowDigitalPass(true);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // 3. Generar mensaje para WhatsApp
-    const isAttending = formData.attendance === 'confirmado';
-    let text = `¡Hola Erlinda y Daniel! 💍\n\nSoy *${formData.guestName}*.\n`;
-    
-    if (isAttending) {
-      text += `¡Confirmo mi asistencia a su boda! 🎉\n• Personas/Pases: *${formData.guestsCount}*\n`;
-      if (formData.dietaryNotes) text += `• Restricciones alimentarias: ${formData.dietaryNotes}\n`;
-      if (formData.songRequest) text += `• Canción sugerida para la pista: "${formData.songRequest}" 🎵\n`;
-    } else {
-      text += `Lamentablemente no podré acompañarlos físicamente, pero les deseo infinitas bendiciones en su matrimonio. ❤️\n`;
-    }
-
-    if (formData.messageToCouple) {
-      text += `\nMensaje con cariño: "${formData.messageToCouple}"`;
-    }
-
-    const encodedMsg = encodeURIComponent(text);
-    const whatsappUrl = `https://wa.me/${selectedWhatsApp}?text=${encodedMsg}`;
-    setWhatsappDirectLink(whatsappUrl);
-
-    // Abrir WhatsApp
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (

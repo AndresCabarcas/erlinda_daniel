@@ -57,7 +57,7 @@ export default function DigitalPassCard({ guestName, guestsCount, onClose }) {
 
             <div class="details">
               <p>📅 <strong>Fecha:</strong> ${WEDDING_CONFIG.dateDisplayText}</p>
-              <p>⛪ <strong>Ceremonia (7:00 PM):</strong> Parroquia La Hermita · Montelíbano, Córdoba</p>
+              <p>⛪ <strong>Ceremonia (7:00 PM):</strong> Parroquia La Ermita · Montelíbano, Córdoba</p>
               <p>🥂 <strong>Recepción (8:00 PM):</strong> Villa Adriana · Montelíbano, Córdoba</p>
               <p>👔 <strong>Dress Code:</strong> Etiqueta Formal (Reservados Blanco/Marfil y Champaña)</p>
             </div>
@@ -109,7 +109,7 @@ export default function DigitalPassCard({ guestName, guestsCount, onClose }) {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-sage-primary shrink-0" />
-              <span>Montelíbano, Córdoba (Parroquia La Hermita & Villa Adriana)</span>
+              <span>Montelíbano, Córdoba (Parroquia La Ermita & Villa Adriana)</span>
             </div>
             <div className="flex items-center gap-2">
               <Shirt className="w-4 h-4 text-sage-primary shrink-0" />
